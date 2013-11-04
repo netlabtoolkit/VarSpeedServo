@@ -54,7 +54,7 @@ VarSpeedServo - Class for manipulating servo motors connected to Arduino pins. M
 Installation
 =============
 
-* Download the .zip file
+* Download the .zip file by clicking on the "release" button at the top of the main Github page
 * In Arduino, select SKETCH>IMPORT LIBRARY...>ADD LIBRARY... and find the .zip file
 * This will install the library in your My Documents (Windows) or Documents (Mac) folder under Arduino/libraries
 * You can also unzip the file, and install it in the above libraries folder manually
