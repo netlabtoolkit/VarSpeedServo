@@ -19,6 +19,9 @@ attached	KEYWORD2
 writeMicroseconds	KEYWORD2
 readMicroseconds	KEYWORD2
 slowmove	KEYWORD2
+sequenceInit KEYWORD2
+sequencePlay KEYWORD2
+sequenceStop KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

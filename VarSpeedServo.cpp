@@ -58,6 +58,11 @@
    detach()    - Stops an attached servos from pulsing its i/o pin. 
 
    slowmove(value, speed)  - The same as write(value, speed), retained for compatibility with Korman's version
+
+   sequenceInit(sequenceIndex, arrayOfPositionSpeedPairs, numberOfPairs); // set up a sequence for a specific index
+   sequencePlay(sequenceIndex, loop); // play a sequence starting at position 0 at first move
+   sequencePlay(sequenceIndex, loop, startPos); // play a sequence starting at a specified position
+   sequenceStop(); // stop current sequence at current position
  
 */
 
@@ -79,6 +84,9 @@ static volatile int8_t Channel[_Nbr_16timers ];             // counter for the s
 
 uint8_t ServoCount = 0;                                     // the total number of attached servos
 
+// sequence vars
+
+sequence_t sequences[MAX_SEQUENCE];
 
 // convenience macros
 #define SERVO_INDEX_TO_TIMER(_servo_nbr) ((timer16_Sequence_t)(_servo_nbr / SERVOS_PER_TIMER)) // returns the timer controlling this servo
@@ -289,7 +297,9 @@ VarSpeedServo::VarSpeedServo()
 {
   if( ServoCount < MAX_SERVOS) {
     this->servoIndex = ServoCount++;                    // assign a servo index to this instance
-	servos[this->servoIndex].ticks = usToTicks(DEFAULT_PULSE_WIDTH);   // store default values  - 12 Aug 2009
+	  servos[this->servoIndex].ticks = usToTicks(DEFAULT_PULSE_WIDTH);   // store default values  - 12 Aug 2009
+    this->seqCurPosition = 0;
+    this->seqCurSequence = CURRENT_SEQUENCE_STOP;
   }
   else
     this->servoIndex = INVALID_SERVO ;  // too many servos 
@@ -446,3 +456,60 @@ bool VarSpeedServo::attached()
 {
   return servos[this->servoIndex].Pin.isActive ;
 }
+
+void VarSpeedServo::sequenceInit(uint8_t seqNum, servoSequencePoint_t sequenceIn[], uint8_t numPositions) {
+  if (seqNum < MAX_SEQUENCE) {
+    for (uint8_t i = 0; i < MAX_SEQUENCE_POSITIONS; i++) { 
+      if (i < numPositions) {
+        sequences[seqNum].sequence[i].position = sequenceIn[i].position;
+        sequences[seqNum].sequence[i].speed = sequenceIn[i].speed;
+      } else { // fill with invalid positions
+        sequences[seqNum].sequence[i].position = INVALID_POSITION;
+      }
+    }
+  }
+  for (int i = 0; i < MAX_SEQUENCE_POSITIONS; i++) { 
+    Serial.print(sequences[seqNum].sequence[i].position);
+    Serial.print(sequences[seqNum].sequence[i].speed);
+  }
+  //Serial.println(sequences[seqNum].position[0]);
+}
+
+uint8_t VarSpeedServo::sequencePlay(uint8_t seqNum, bool loop, uint8_t startPos) {
+  uint8_t oldSeqCurPosition = this->seqCurPosition;
+
+  if( this->seqCurSequence != seqNum) {
+    this->seqCurSequence = seqNum;
+    this->seqCurPosition = startPos;
+    oldSeqCurPosition = -1;
+  }
+  if (read() == sequences[this->seqCurSequence].sequence[this->seqCurPosition].position && this->seqCurPosition != INVALID_POSITION) {
+    this->seqCurPosition++;
+    if (this->seqCurPosition >= MAX_SEQUENCE_POSITIONS || sequences[this->seqCurSequence].sequence[this->seqCurPosition].position == INVALID_POSITION) {
+      if (loop) {
+        this->seqCurPosition = 0;
+      } else {
+        this->seqCurPosition = INVALID_POSITION;
+      }
+    }
+  }
+  if (this->seqCurPosition != oldSeqCurPosition && this->seqCurPosition != INVALID_POSITION) { 
+    // INVALID_POSITION position means the animation has ended, and should no longer be played
+    // otherwise move to the next position
+    write(sequences[this->seqCurSequence].sequence[this->seqCurPosition].position,
+      sequences[this->seqCurSequence].sequence[this->seqCurPosition].speed);
+  }
+  
+  return this->seqCurPosition;
+}
+
+uint8_t VarSpeedServo::sequencePlay(uint8_t seqNum, bool loop) {
+  return sequencePlay(seqNum, loop, 0);
+}
+
+void VarSpeedServo::sequenceStop() {
+  write(read());
+  this->seqCurPosition = INVALID_POSITION;
+  this->seqCurSequence = CURRENT_SEQUENCE_STOP;
+}
+

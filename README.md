@@ -9,6 +9,7 @@ This code is an adaptation of the standard Arduino Servo library, which was firs
 * Allows simultaneous, asynchronous movement of all servos
 * Speed of the move can be set
 * A servo write() function to set a new position can wait for completion before returning
+* Allows the use of sequences of servo positions, where the servo can go at a specified speed to each position in order
 
 Sample Code
 ----------------------------
@@ -51,10 +52,15 @@ VarSpeedServo - Class for manipulating servo motors connected to Arduino pins. M
 
 	slowmove(value, speed)  - The same as write(value, speed), retained for compatibility with Korman's version
 
+	sequenceInit(sequenceIndex, arrayOfPositionSpeedPairs, numberOfPairs); // set up a sequence for a specific index
+   	sequencePlay(sequenceIndex, loop); // play a sequence starting at position 0 at first move
+   	sequencePlay(sequenceIndex, loop, startPos); // play a sequence starting at a specified position
+   	sequenceStop(); // stop current sequence at current position
+
 Installation
 =============
 
-* Download the .zip file by clicking on the "release" button at the top of the main Github page
+* Download the .zip file from the releases section of GitHub
 * In Arduino, select SKETCH>IMPORT LIBRARY...>ADD LIBRARY... and find the .zip file
 * This will install the library in your My Documents (Windows) or Documents (Mac) folder under Arduino/libraries
 * You can also unzip the file, and install it in the above libraries folder manually

@@ -61,6 +61,11 @@
 
    slowmove(value, speed)  - The same as write(value, speed), retained for compatibility with Korman's version
 
+   sequenceInit(sequenceIndex, arrayOfPositionSpeedPairs, numberOfPairs); // set up a sequence for a specific index
+   sequencePlay(sequenceIndex, loop); // play a sequence starting at position 0 at first move
+   sequencePlay(sequenceIndex, loop, startPos); // play a sequence starting at a specified position
+   sequenceStop(); // stop current sequence at current position
+
  */
 
 #ifndef VarSpeedServo_h
@@ -117,6 +122,12 @@ typedef enum { _timer1, _Nbr_16timers } timer16_Sequence_t ;
 
 #define INVALID_SERVO         255     // flag indicating an invalid servo index
 
+#define MAX_SEQUENCE_POSITIONS  10     // maximum number of sequence positions
+#define MAX_SEQUENCE            10     // maximum number of sequences
+#define INVALID_POSITION        255    // used for unfilled positions
+#define CURRENT_SEQUENCE_STOP   255    // used to indicate the current sequence is not used and sequence should stop
+
+
 typedef struct  {
   uint8_t nbr        :6 ;             // a pin number from 0 to 63
   uint8_t isActive   :1 ;             // true if this channel is enabled, pin not pulsed if false 
@@ -128,6 +139,17 @@ typedef struct {
 	unsigned int target;			// Extension for slowmove
 	uint8_t speed;					// Extension for slowmove
 } servo_t;
+
+typedef struct {
+  uint8_t position;
+  uint8_t speed;
+} servoSequencePoint_t;
+
+
+typedef struct {
+  servoSequencePoint_t sequence[MAX_SEQUENCE_POSITIONS];
+} sequence_t;
+
 
 class VarSpeedServo
 {
@@ -148,10 +170,18 @@ public:
   int read();                        // returns current pulse width as an angle between 0 and 180 degrees
   int readMicroseconds();            // returns current pulse width in microseconds for this servo (was read_us() in first release)
   bool attached();                   // return true if this servo is attached, otherwise false 
+
+  void sequenceInit(uint8_t seqNum, servoSequencePoint_t sequenceIn[], uint8_t numPositions); // set up a sequence for a specific index
+  uint8_t sequencePlay(uint8_t seqNum, bool loop); // play a sequence starting at position 0 at first move
+  uint8_t sequencePlay(uint8_t seqNum, bool loop, uint8_t startPos); // play a sequence starting at a specified position
+  void sequenceStop(); // stop movement
 private:
    uint8_t servoIndex;               // index into the channel data for this servo
    int8_t min;                       // minimum is this value times 4 added to MIN_PULSE_WIDTH    
-   int8_t max;                       // maximum is this value times 4 added to MAX_PULSE_WIDTH   
+   int8_t max;                       // maximum is this value times 4 added to MAX_PULSE_WIDTH
+   uint8_t seqCurSequence; // for sequences
+   uint8_t seqCurPosition; // for sequences
+
 };
 
 #endif
