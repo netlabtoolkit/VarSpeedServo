@@ -391,7 +391,7 @@ void VarSpeedServo::write(int value, uint8_t speed) {
   int degrees = value;
 
 	if (speed) {
-		if(value < MIN_PULSE_WIDTH) {
+		if (value < MIN_PULSE_WIDTH) {
 		// treat values less than 544 as angles in degrees (valid values in microseconds are handled as microseconds)
       // updated to use constrain instead of if, pva
       value = constrain(value, 0, 180);
@@ -422,8 +422,14 @@ void VarSpeedServo::write(int value, uint8_t speed) {
 void VarSpeedServo::write(int value, uint8_t speed, bool wait) {
   write(value, speed);
   if (wait) { // block until the servo is at its new position
-    while (read() != value) {
-      delay(5);
+    if (value < MIN_PULSE_WIDTH) {
+      while (read() != value) {
+        delay(5);
+      }
+    } else {
+      while (readMicroseconds() != value) {
+        delay(5);
+      }
     }
   }
 }
