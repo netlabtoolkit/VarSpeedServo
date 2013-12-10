@@ -11,7 +11,9 @@ VarSpeedServo myservo1;
 
 const int servoPin1 = 9;  // the digital pin used for the servo
 
-servoSequencePoint slow[] = {{100,20},{20,20},{60,50}};
+// sequences are defined as an array of points in the sequence
+// each point has a position from 0 - 180, and a speed to get to that position
+servoSequencePoint slow[] = {{100,20},{20,20},{60,50}}; // go to position 100 at speed of 20, position 20 speed 20, position 60, speed 50
 servoSequencePoint twitchy[] = {{0,255},{180,40},{90,127},{120,60}};
 
 const int analogPin = A0;
