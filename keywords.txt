@@ -15,11 +15,11 @@ attach	KEYWORD2
 detach	KEYWORD2
 write	KEYWORD2
 read	KEYWORD2
+stop    KEYWORD2
 attached	KEYWORD2
 writeMicroseconds	KEYWORD2
 readMicroseconds	KEYWORD2
 slowmove	KEYWORD2
-sequenceInit KEYWORD2
 sequencePlay KEYWORD2
 sequenceStop KEYWORD2
 

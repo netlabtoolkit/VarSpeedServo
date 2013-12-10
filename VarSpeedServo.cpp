@@ -31,16 +31,17 @@
   -- consolidated slowmove into the write command (while keeping slowmove() for compatibility
      with Korman's version)
   -- added wait parameter to allow write command to block until move is complete
-/* 
- 
- A servo is activated by creating an instance of the Servo class passing the desired pin to the attach() method.
- The servos are pulsed in the background using the value most recently written using the write() method
- 
- Note that analogWrite of PWM on pins associated with the timer are disabled when the first servo is attached.
- Timers are seized as needed in groups of 12 servos - 24 servos use two timers, 48 servos will use four.
- 
- The methods are:
- 
+  -- added sequence playing ability to asynchronously move the servo through a series of positions, must be called in a loop
+
+  A servo is activated by creating an instance of the Servo class passing the desired pin to the attach() method.
+  The servos are pulsed in the background using the value most recently written using the write() method
+
+  Note that analogWrite of PWM on pins associated with the timer are disabled when the first servo is attached.
+  Timers are seized as needed in groups of 12 servos - 24 servos use two timers, 48 servos will use four.
+  The sequence used to sieze timers is defined in timers.h
+
+  The methods are:
+
    VarSpeedServo - Class for manipulating servo motors connected to Arduino pins.
 
    attach(pin )  - Attaches a servo motor to an i/o pin.
@@ -50,21 +51,22 @@
    write(value)     - Sets the servo angle in degrees.  (invalid angle that is valid as pulse in microseconds is treated as microseconds)
    write(value, speed) - speed varies the speed of the move to new position 0=full speed, 1-255 slower to faster
    write(value, speed, wait) - wait is a boolean that, if true, causes the function call to block until move is complete
-   
+
    writeMicroseconds() - Sets the servo pulse width in microseconds 
    read()      - Gets the last written servo pulse width as an angle between 0 and 180. 
-   readMicroseconds()   - Gets the last written servo pulse width in microseconds. (was read_us() in first release)
+   readMicroseconds()  - Gets the last written servo pulse width in microseconds. (was read_us() in first release)
    attached()  - Returns true if there is a servo attached. 
    detach()    - Stops an attached servos from pulsing its i/o pin. 
 
-   slowmove(value, speed)  - The same as write(value, speed), retained for compatibility with Korman's version
+   slowmove(value, speed) - The same as write(value, speed), retained for compatibility with Korman's version
 
-   sequenceInit(sequenceIndex, arrayOfPositionSpeedPairs, numberOfPairs); // set up a sequence for a specific index
-   sequencePlay(sequenceIndex, loop); // play a sequence starting at position 0 at first move
-   sequencePlay(sequenceIndex, loop, startPos); // play a sequence starting at a specified position
-   sequenceStop(); // stop current sequence at current position
- 
-*/
+   stop() - stops the servo at the current position
+
+   sequencePlay(sequence, sequencePositions); // play a looping sequence starting at position 0
+   sequencePlay(sequence, sequencePositions, loop, startPosition); // play sequence with number of positions, loop if true, start at position
+   sequenceStop(); // stop sequence at current position
+
+ */
 
 #include <avr/interrupt.h>
 #include <Arduino.h> // updated from WProgram.h to Arduino.h for Arduino 1.0+, pva
@@ -86,7 +88,9 @@ uint8_t ServoCount = 0;                                     // the total number 
 
 // sequence vars
 
-sequence_t sequences[MAX_SEQUENCE];
+servoSequencePoint initSeq[] = {{0,100},{45,100}};
+
+//sequence_t sequences[MAX_SEQUENCE];
 
 // convenience macros
 #define SERVO_INDEX_TO_TIMER(_servo_nbr) ((timer16_Sequence_t)(_servo_nbr / SERVOS_PER_TIMER)) // returns the timer controlling this servo
@@ -298,8 +302,8 @@ VarSpeedServo::VarSpeedServo()
   if( ServoCount < MAX_SERVOS) {
     this->servoIndex = ServoCount++;                    // assign a servo index to this instance
 	  servos[this->servoIndex].ticks = usToTicks(DEFAULT_PULSE_WIDTH);   // store default values  - 12 Aug 2009
-    this->seqCurPosition = 0;
-    this->seqCurSequence = CURRENT_SEQUENCE_STOP;
+    this->curSeqPosition = 0;
+    this->curSequence = initSeq;
   }
   else
     this->servoIndex = INVALID_SERVO ;  // too many servos 
@@ -434,6 +438,10 @@ void VarSpeedServo::write(int value, uint8_t speed, bool wait) {
   }
 }
 
+void VarSpeedServo::stop() {
+  write(read());
+}
+
 void VarSpeedServo::slowmove(int value, uint8_t speed) {
   // legacy function to support original version of VarSpeedServo
   write(value, speed);
@@ -463,59 +471,44 @@ bool VarSpeedServo::attached()
   return servos[this->servoIndex].Pin.isActive ;
 }
 
-void VarSpeedServo::sequenceInit(uint8_t seqNum, servoSequencePoint_t sequenceIn[], uint8_t numPositions) {
-  if (seqNum < MAX_SEQUENCE) {
-    for (uint8_t i = 0; i < MAX_SEQUENCE_POSITIONS; i++) { 
-      if (i < numPositions) {
-        sequences[seqNum].sequence[i].position = sequenceIn[i].position;
-        sequences[seqNum].sequence[i].speed = sequenceIn[i].speed;
-      } else { // fill with invalid positions
-        sequences[seqNum].sequence[i].position = INVALID_POSITION;
-      }
-    }
-  }
-  for (int i = 0; i < MAX_SEQUENCE_POSITIONS; i++) { 
-    Serial.print(sequences[seqNum].sequence[i].position);
-    Serial.print(sequences[seqNum].sequence[i].speed);
-  }
-  //Serial.println(sequences[seqNum].position[0]);
-}
+uint8_t VarSpeedServo::sequencePlay(servoSequencePoint sequenceIn[], uint8_t numPositions, bool loop, uint8_t startPos) {
+  uint8_t oldSeqPosition = this->curSeqPosition;
 
-uint8_t VarSpeedServo::sequencePlay(uint8_t seqNum, bool loop, uint8_t startPos) {
-  uint8_t oldSeqCurPosition = this->seqCurPosition;
-
-  if( this->seqCurSequence != seqNum) {
-    this->seqCurSequence = seqNum;
-    this->seqCurPosition = startPos;
-    oldSeqCurPosition = -1;
-  }
-  if (read() == sequences[this->seqCurSequence].sequence[this->seqCurPosition].position && this->seqCurPosition != INVALID_POSITION) {
-    this->seqCurPosition++;
-    if (this->seqCurPosition >= MAX_SEQUENCE_POSITIONS || sequences[this->seqCurSequence].sequence[this->seqCurPosition].position == INVALID_POSITION) {
-      if (loop) {
-        this->seqCurPosition = 0;
-      } else {
-        this->seqCurPosition = INVALID_POSITION;
-      }
-    }
-  }
-  if (this->seqCurPosition != oldSeqCurPosition && this->seqCurPosition != INVALID_POSITION) { 
-    // INVALID_POSITION position means the animation has ended, and should no longer be played
-    // otherwise move to the next position
-    write(sequences[this->seqCurSequence].sequence[this->seqCurPosition].position,
-      sequences[this->seqCurSequence].sequence[this->seqCurPosition].speed);
+  if( this->curSequence != sequenceIn) {
+    //Serial.println("newSeq");
+    this->curSequence = sequenceIn;
+    this->curSeqPosition = startPos;
+    oldSeqPosition = 255;
   }
   
-  return this->seqCurPosition;
+  if (read() == sequenceIn[this->curSeqPosition].position && this->curSeqPosition != CURRENT_SEQUENCE_STOP) {
+    this->curSeqPosition++;
+    
+    if (this->curSeqPosition >= numPositions) { // at the end of the loop
+      if (loop) { // reset to the beginning of the loop
+        this->curSeqPosition = 0;
+      } else { // stop the loop
+        this->curSeqPosition = CURRENT_SEQUENCE_STOP;
+      }
+    }
+  }
+
+  if (this->curSeqPosition != oldSeqPosition && this->curSeqPosition != CURRENT_SEQUENCE_STOP) { 
+    // CURRENT_SEQUENCE_STOP position means the animation has ended, and should no longer be played
+    // otherwise move to the next position
+    write(sequenceIn[this->curSeqPosition].position, sequenceIn[this->curSeqPosition].speed);
+    //Serial.println(this->seqCurPosition);
+  }
+  
+  return this->curSeqPosition;
 }
 
-uint8_t VarSpeedServo::sequencePlay(uint8_t seqNum, bool loop) {
-  return sequencePlay(seqNum, loop, 0);
+uint8_t VarSpeedServo::sequencePlay(servoSequencePoint sequenceIn[], uint8_t numPositions) {
+  return sequencePlay(sequenceIn, numPositions, true, 0);
 }
 
 void VarSpeedServo::sequenceStop() {
   write(read());
-  this->seqCurPosition = INVALID_POSITION;
-  this->seqCurSequence = CURRENT_SEQUENCE_STOP;
+  this->curSeqPosition = CURRENT_SEQUENCE_STOP;
 }
 
