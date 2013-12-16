@@ -28,9 +28,9 @@ void loop() {
   // read the input on analog pin 0:
   int sensorValue = analogRead(analogPin);
   if (sensorValue > 200) {
-    myservo1.sequencePlay(slow, 3); // play sequence slowHalf that has 3 positions, loop and start at first position
+    myservo1.sequencePlay(slow, 3); // play sequence "slowHalf" that has 3 positions, loop and start at first position
   } else {
-    myservo1.sequencePlay(twitchy, 4, true, 2); // play sequence 1, loop, start at third position
+    myservo1.sequencePlay(twitchy, 4, true, 2); // play sequence "twitchy", loop, start at third position
   }
   delay(2);        // delay in between reads for analogin stability
 }
