@@ -32,6 +32,8 @@ void loop() {
 
 Additional examples are included in the distribution and are available in the Arduino Examples section.
 
+If you also include <Firmata.h>, make it after `#include <VarSpeedServo.h>` to avoid a compiler error.
+
 Class methods
 ================
 
@@ -61,11 +63,13 @@ VarSpeedServo - Class for manipulating servo motors connected to Arduino pins. M
 	sequencePlay(sequence, sequencePositions, loop, startPosition); // play sequence with number of positions, loop if true, start at position
 	sequenceStop(); // stop sequence at current position
 
+The `sequencePlay()` methods must be called continuously to effect servo motion.
+
 Installation
 =============
 
-* Download the .zip file from the releases section of GitHub
-* In Arduino, select SKETCH>IMPORT LIBRARY...>ADD LIBRARY... and find the .zip file
-* This will install the library in your My Documents (Windows) or Documents (Mac) folder under Arduino/libraries
-* You can also unzip the file, and install it in the above libraries folder manually
-* See [arduino.cc/en/Guide/Libraries](http://arduino.cc/en/Guide/Libraries) for more info on libraries
+1. Download the .zip file from the releases section of GitHub
+2. In Arduino, select SKETCH>IMPORT LIBRARY...>ADD LIBRARY... and find the .zip file
+2. This will install the library in your My Documents (Windows) or Documents (Mac) folder under Arduino/libraries
+2. You can also unzip the file, and install it in the above libraries folder manually
+2. See [arduino.cc/en/Guide/Libraries](http://arduino.cc/en/Guide/Libraries) for more info on libraries
