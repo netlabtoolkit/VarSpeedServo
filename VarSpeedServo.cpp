@@ -115,22 +115,26 @@ static inline void handle_interrupts(timer16_Sequence_t timer, volatile uint16_t
   Channel[timer]++;    // increment to the next channel
   if( SERVO_INDEX(timer,Channel[timer]) < ServoCount && Channel[timer] < SERVOS_PER_TIMER) {
 
+    // BWitt : ptr <- SERVO(timer,Channel[timer])
+    //      Saves 498 bytes (Windows 7, Ardu IDE 1.5.2)
+    servo_t * const  servoptr = & SERVO(timer,Channel[timer]);
+
 	// Extension for slowmove
-	if (SERVO(timer,Channel[timer]).speed) {
+	if (servoptr->speed) {
 		// Increment ticks by speed until we reach the target.
-		// When the target is reached, speed is set to 0 to disable that code.
-		if (SERVO(timer,Channel[timer]).target > SERVO(timer,Channel[timer]).ticks) {
-			SERVO(timer,Channel[timer]).ticks += SERVO(timer,Channel[timer]).speed;
-			if (SERVO(timer,Channel[timer]).target <= SERVO(timer,Channel[timer]).ticks) {
-				SERVO(timer,Channel[timer]).ticks = SERVO(timer,Channel[timer]).target;
-				SERVO(timer,Channel[timer]).speed = 0;
+		// When the target is reached, speed is set to 0 to disable that code.  
+		if (servoptr->target > servoptr->ticks) {
+			servoptr->ticks += servoptr->speed;
+			if (servoptr->target <= servoptr->ticks) {
+				servoptr->ticks = servoptr->target;
+				servoptr->speed = 0;
 			}
 		}
 		else {
-			SERVO(timer,Channel[timer]).ticks -= SERVO(timer,Channel[timer]).speed;
-			if (SERVO(timer,Channel[timer]).target >= SERVO(timer,Channel[timer]).ticks) {
-				SERVO(timer,Channel[timer]).ticks = SERVO(timer,Channel[timer]).target;
-				SERVO(timer,Channel[timer]).speed = 0;
+			servoptr->ticks -= servoptr->speed;
+			if (servoptr->target >= servoptr->ticks) {
+				servoptr->ticks = servoptr->target;
+				servoptr->speed = 0;
 			}
 		}
 	}
@@ -138,9 +142,9 @@ static inline void handle_interrupts(timer16_Sequence_t timer, volatile uint16_t
 
 	// Todo
 
-    *OCRnA = *TCNTn + SERVO(timer,Channel[timer]).ticks;
-    if(SERVO(timer,Channel[timer]).Pin.isActive == true)     // check if activated
-      digitalWrite( SERVO(timer,Channel[timer]).Pin.nbr,HIGH); // its an active channel so pulse it high
+    *OCRnA = *TCNTn + servoptr->ticks;
+    if(servoptr->Pin.isActive == true)     // check if activated
+      digitalWrite( servoptr->Pin.nbr,HIGH); // its an active channel so pulse it high
   }
   else {
     // finished all channels so wait for the refresh period to expire before starting over
@@ -150,6 +154,7 @@ static inline void handle_interrupts(timer16_Sequence_t timer, volatile uint16_t
       *OCRnA = *TCNTn + 4;  // at least REFRESH_INTERVAL has elapsed
     Channel[timer] = -1; // this will get incremented at the end of the refresh period to start again at the first channel
   }
+
 }
 
 #ifndef WIRING // Wiring pre-defines signal handlers so don't define any if compiling for the Wiring platform
