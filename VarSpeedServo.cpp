@@ -92,6 +92,8 @@ servoSequencePoint initSeq[] = {{0,100},{45,100}};
 
 //sequence_t sequences[MAX_SEQUENCE];
 
+volatile int8_t VarSpeedServo::refresh_flag;
+
 // convenience macros
 #define SERVO_INDEX_TO_TIMER(_servo_nbr) ((timer16_Sequence_t)(_servo_nbr / SERVOS_PER_TIMER)) // returns the timer controlling this servo
 #define SERVO_INDEX_TO_CHANNEL(_servo_nbr) (_servo_nbr % SERVOS_PER_TIMER)       // returns the index of the servo on this timer
@@ -105,9 +107,10 @@ servoSequencePoint initSeq[] = {{0,100},{45,100}};
 
 static inline void handle_interrupts(timer16_Sequence_t timer, volatile uint16_t *TCNTn, volatile uint16_t* OCRnA)
 {
-  if( Channel[timer] < 0 )
+  if( Channel[timer] < 0 ) {
     *TCNTn = 0; // channel set to -1 indicated that refresh interval completed so reset the timer 
-  else{
+	VarSpeedServo::refresh_flag = 0;
+  }else{
     if( SERVO_INDEX(timer,Channel[timer]) < ServoCount && SERVO(timer,Channel[timer]).Pin.isActive == true )  
       digitalWrite( SERVO(timer,Channel[timer]).Pin.nbr,LOW); // pulse this channel low if activated   
   }
@@ -149,6 +152,7 @@ static inline void handle_interrupts(timer16_Sequence_t timer, volatile uint16_t
     else 
       *OCRnA = *TCNTn + 4;  // at least REFRESH_INTERVAL has elapsed
     Channel[timer] = -1; // this will get incremented at the end of the refresh period to start again at the first channel
+	VarSpeedServo::refresh_flag = 1;
   }
 }
 
