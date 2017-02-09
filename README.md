@@ -32,8 +32,9 @@ void loop() {
 
 
 Sample Code - two servo moving in the same time with different speed, wait for both to finish and do another move
----------------------------
+----------------------------
 
+```
 #include <VarSpeedServo.h> 
 
 // create servo objects
@@ -73,7 +74,7 @@ void loop() {
   
 }
 
----
+```
 
 
 Additional examples are included in the distribution and are available in the Arduino Examples section.
