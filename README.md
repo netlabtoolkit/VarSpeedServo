@@ -11,7 +11,7 @@ This code is an adaptation of the standard Arduino Servo.h library, which was fi
 * The write() function initiates a move and can optionally wait for completion of the move before returning
 * A servo can be sent a sequence of moves (where each move has a position and speed)
 
-Sample Code
+Sample Code - one servo moving, wait for first movement to finish them execute another movement
 ----------------------------
 
 ```
@@ -29,6 +29,52 @@ void loop() {
   myservo.write(0, 30, true);        // move to 0 degrees, use a speed of 30, wait until move is complete
 }
 ```
+
+
+Sample Code - two servo moving in the same time with different speed, wait for both to finish and do another move
+---------------------------
+
+#include <VarSpeedServo.h> 
+
+// create servo objects
+VarSpeedServo myservo1;
+VarSpeedServo myservo2;
+ 
+void setup() {
+  myservo1.attach(9);
+  myservo2.attach(8);
+} 
+ 
+void loop() {
+  
+  int LEF = 0;
+  int RIG = 180;
+  
+  int SPEED1 = 160;
+  int SPEED2 = 100;
+  
+  myservo1.write(LEF, SPEED1);     
+  myservo2.write(LEF, SPEED2);
+  myservo1.wait(); // wait for servo 1 to finish
+  myservo2.wait();  // wait for servo 2 to finish
+    
+  myservo1.write(RIG, SPEED1);     
+  myservo1.wait(); // wait for S1
+  
+  myservo1.write(LEF, SPEED1); 
+  myservo2.write(RIG, SPEED2);  
+  myservo1.wait();
+  myservo2.wait();    
+        
+  myservo1.write(RIG, SPEED1);     
+  myservo1.wait();
+      
+  delay(1000);
+  
+}
+
+---
+
 
 Additional examples are included in the distribution and are available in the Arduino Examples section.
 
@@ -60,6 +106,8 @@ VarSpeedServo - Class for manipulating servo motors connected to Arduino pins. M
 	sequencePlay(sequence, sequencePositions); // play a looping sequence starting at position 0
 	sequencePlay(sequence, sequencePositions, loop, startPosition); // play sequence with number of positions, loop if true, start at position
 	sequenceStop(); // stop sequence at current position
+	wait(); // wait for movement to finish
+	isMoving()  // return true if servo is still moving
 
 Installation
 =============

@@ -341,7 +341,11 @@ void VarSpeedServo::detach()
 }
 
 void VarSpeedServo::write(int value)
-{  
+{
+
+  byte channel = this->servoIndex;
+  servos[channel].value = value;
+    
   if(value < MIN_PULSE_WIDTH)
   {  // treat values less than 544 as angles in degrees (valid values in microseconds are handled as microseconds)
     // updated to use constrain() instead of if(), pva
@@ -355,6 +359,8 @@ void VarSpeedServo::writeMicroseconds(int value)
 {
   // calculate and store the values for the given channel
   byte channel = this->servoIndex;
+  servos[channel].value = value;
+  
   if( (channel >= 0) && (channel < MAX_SERVOS) )   // ensure channel is valid
   {  
     if( value < SERVO_MIN() )          // ensure pulse width is valid
@@ -392,17 +398,19 @@ void VarSpeedServo::write(int value, uint8_t speed) {
 	// in target instead of in ticks in the servo structure and speed will be save
 	// there too.
 
-  int degrees = value;
+  byte channel = this->servoIndex;
+  servos[channel].value = value;
 
 	if (speed) {
+			
 		if (value < MIN_PULSE_WIDTH) {
 			// treat values less than 544 as angles in degrees (valid values in microseconds are handled as microseconds)
       		// updated to use constrain instead of if, pva
       		value = constrain(value, 0, 180);
       		value = map(value, 0, 180, SERVO_MIN(),  SERVO_MAX());    
 		}
-		// calculate and store the values for the given channel
-		byte channel = this->servoIndex;
+		
+		// calculate and store the values for the given channel		
 		if( (channel >= 0) && (channel < MAX_SERVOS) ) {   // ensure channel is valid
       		// updated to use constrain instead of if, pva
       		value = constrain(value, SERVO_MIN(), SERVO_MAX());
@@ -425,6 +433,7 @@ void VarSpeedServo::write(int value, uint8_t speed) {
 
 void VarSpeedServo::write(int value, uint8_t speed, bool wait) {
   write(value, speed);
+  
   if (wait) { // block until the servo is at its new position
     if (value < MIN_PULSE_WIDTH) {
       while (read() != value) {
@@ -512,6 +521,38 @@ void VarSpeedServo::sequenceStop() {
   this->curSeqPosition = CURRENT_SEQUENCE_STOP;
 }
 
+// to be used only with "write(value, speed)"
+void VarSpeedServo::wait() {
+  byte channel = this->servoIndex;
+  int value = servos[channel].value;
+  
+  // wait until is done
+  if (value < MIN_PULSE_WIDTH) {
+    while (read() != value) {
+      delay(5);
+    }
+  } else {
+    while (readMicroseconds() != value) {
+      delay(5);
+    }
+  }
+}
+
+bool VarSpeedServo::isMoving() {
+  byte channel = this->servoIndex;
+  int value = servos[channel].value;
+  
+  if (value < MIN_PULSE_WIDTH) {
+    if (read() != value) {
+      return true;
+    }
+  } else {
+    if (readMicroseconds() != value) {
+      return true;
+    }
+  }
+}
+
 /*
 	To do
 int VarSpeedServo::targetPosition() {
@@ -524,8 +565,4 @@ int VarSpeedServo::targetPositionMicroseconds() {
 	return servos[channel].target;
 }
 
-bool VarSpeedServo::isMoving() {
-	byte channel = this->servoIndex;
-	int servos[channel].target;
-}
 */

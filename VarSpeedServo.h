@@ -135,6 +135,7 @@ typedef struct  {
 typedef struct {
   ServoPin_t Pin;
   unsigned int ticks;
+	unsigned int value;			// Extension for external wait (Gill)
 	unsigned int target;			// Extension for slowmove
 	uint8_t speed;					// Extension for slowmove
 } servo_t;
@@ -168,6 +169,8 @@ public:
   uint8_t sequencePlay(servoSequencePoint sequenceIn[], uint8_t numPositions, bool loop, uint8_t startPos);
   uint8_t sequencePlay(servoSequencePoint sequenceIn[], uint8_t numPositions); // play a looping sequence starting at position 0
   void sequenceStop(); // stop movement
+  void wait(); // wait for movement to finish  
+  bool isMoving(); // return true if servo is still moving
 private:
    uint8_t servoIndex;               // index into the channel data for this servo
    int8_t min;                       // minimum is this value times 4 added to MIN_PULSE_WIDTH    
