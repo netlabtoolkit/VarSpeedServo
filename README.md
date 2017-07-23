@@ -11,7 +11,7 @@ This code is an adaptation of the standard Arduino Servo.h library, which was fi
 * The write() function initiates a move and can optionally wait for completion of the move before returning
 * A servo can be sent a sequence of moves (where each move has a position and speed)
 
-Sample Code - one servo moving, wait for first movement to finish them execute another movement
+Sample Code - one servo moving, wait for first movement to finish, then execute another movement
 ----------------------------
 
 ```
