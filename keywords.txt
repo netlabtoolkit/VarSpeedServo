@@ -22,7 +22,8 @@ readMicroseconds	KEYWORD2
 slowmove	KEYWORD2
 sequencePlay KEYWORD2
 sequenceStop KEYWORD2
-
+wait KEYWORD2
+isMoving KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
