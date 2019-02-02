@@ -301,7 +301,7 @@ VarSpeedServo::VarSpeedServo()
 {
   if( ServoCount < MAX_SERVOS) {
     this->servoIndex = ServoCount++;                    // assign a servo index to this instance
-	  servos[this->servoIndex].ticks = usToTicks(DEFAULT_PULSE_WIDTH);   // store default values  - 12 Aug 2009
+	  
     this->curSeqPosition = 0;
     this->curSequence = initSeq;
   }
@@ -309,14 +309,15 @@ VarSpeedServo::VarSpeedServo()
     this->servoIndex = INVALID_SERVO ;  // too many servos
 }
 
-uint8_t VarSpeedServo::attach(int pin)
+uint8_t VarSpeedServo::attach(int pin, int initial_pos = DEFAULT_PULSE_WIDTH)
 {
-  return this->attach(pin, MIN_PULSE_WIDTH, MAX_PULSE_WIDTH);
+  return this->attach(pin, MIN_PULSE_WIDTH, MAX_PULSE_WIDTH, initial_pos);
 }
 
-uint8_t VarSpeedServo::attach(int pin, int min, int max)
+uint8_t VarSpeedServo::attach(int pin, int min, int max, int initial_pos = DEFAULT_PULSE_WIDTH)
 {
   if(this->servoIndex < MAX_SERVOS ) {
+	servos[this->servoIndex].ticks = usToTicks(initial_pos);
     pinMode( pin, OUTPUT) ;                                   // set servo pin to output
     servos[this->servoIndex].Pin.nbr = pin;
     // todo min/max check: abs(min - MIN_PULSE_WIDTH) /4 < 128
