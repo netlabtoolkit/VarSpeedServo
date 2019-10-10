@@ -405,15 +405,15 @@ void VarSpeedServo::write(int value, uint8_t speed) {
 
 		if (value < MIN_PULSE_WIDTH) {
 			// treat values less than 544 as angles in degrees (valid values in microseconds are handled as microseconds)
-      		// updated to use constrain instead of if, pva
-      		value = constrain(value, 0, 180);
-      		value = map(value, 0, 180, SERVO_MIN(),  SERVO_MAX());
+			// updated to use constrain instead of if, pva
+			value = constrain(value, 0, 180);
+			value = map(value, 0, 180, SERVO_MIN(),  SERVO_MAX());
 		}
 
 		// calculate and store the values for the given channel
 		if( (channel >= 0) && (channel < MAX_SERVOS) ) {   // ensure channel is valid
-      		// updated to use constrain instead of if, pva
-      		value = constrain(value, SERVO_MIN(), SERVO_MAX());
+			// updated to use constrain instead of if, pva
+			value = constrain(value, SERVO_MIN(), SERVO_MAX());
 
 			value = value - TRIM_DURATION;
 			value = usToTicks(value);  // convert to ticks after compensating for interrupt overhead - 12 Aug 2009
