@@ -20,7 +20,7 @@
 /*
   Function slowmove and supporting code added 2010 by Korman. Above limitations apply
   to all added code, except for the official maintainer of the Servo library. If he,
-  and only he deems the enhancment a good idea to add to the official Servo library,
+  and only he deems the enhancement a good idea to add to the official Servo library,
   he may add it without the requirement to name the author of the parts original to
   this version of the library.
 */
@@ -38,7 +38,7 @@
 
   Note that analogWrite of PWM on pins associated with the timer are disabled when the first servo is attached.
   Timers are seized as needed in groups of 12 servos - 24 servos use two timers, 48 servos will use four.
-  The sequence used to sieze timers is defined in timers.h
+  The sequence used to seize timers is defined in timers.h
 
   The methods are:
 

@@ -21,7 +21,7 @@
 /*
   Function slowmove and supporting code added 2010 by Korman. Above limitations apply
   to all added code, except for the official maintainer of the Servo library. If he,
-  and only he deems the enhancment a good idea to add to the official Servo library,
+  and only he deems the enhancement a good idea to add to the official Servo library,
   he may add it without the requirement to name the author of the parts original to
   this version of the library.
 */
@@ -40,7 +40,7 @@
 
   Note that analogWrite of PWM on pins associated with the timer are disabled when the first servo is attached.
   Timers are seized as needed in groups of 12 servos - 24 servos use two timers, 48 servos will use four.
-  The sequence used to sieze timers is defined in timers.h
+  The sequence used to seize timers is defined in timers.h
 
   The methods are:
 
@@ -117,7 +117,7 @@ typedef enum { _timer1, _Nbr_16timers } timer16_Sequence_t ;
 #define MIN_PULSE_WIDTH       544     // the shortest pulse sent to a servo
 #define MAX_PULSE_WIDTH      2400     // the longest pulse sent to a servo
 #define DEFAULT_PULSE_WIDTH  1500     // default pulse width when servo is attached
-#define REFRESH_INTERVAL    20000     // minumim time to refresh servos in microseconds
+#define REFRESH_INTERVAL    20000     // minimum time to refresh servos in microseconds
 
 #define SERVOS_PER_TIMER       12     // the maximum number of servos controlled by one timer
 #define MAX_SERVOS   (_Nbr_16timers  * SERVOS_PER_TIMER)
