@@ -1,6 +1,12 @@
 VarSpeedServo.h
 ===============
 
+NOTE: This library is no longer maintained due to hardware dependencies and wide variety of devices to support. As an alternative, I have created [VarSpeedPython](https://github.com/pvanallen/VarSpeedPython), which is a module that can be used on any python platform (e.g. [CircuitPython](https://circuitpython.org/downloads) or [MicroPython](https://micropython.org)) or any implementation of Python. VarSpeedPython is does not have any hardware dependencies, and is designed to be called from within an event loop (and therefore does not block).
+
+VarSpeedPython provides the ability to move from one position to another over a period of time, and with a specified number of steps, and with an easing function for the move. It can be applied to Servos, LEDs, any other actuator or output that needs to change from one value to another over time.
+
+Please give it a try if your project can run on a Python platform.
+
 The VarSpeedServo.h Arduino library allows the use of up to 8 servos moving asynchronously (because it uses interrupts). In addition, you can set the speed of a move, optionally wait (block) until the servo move is complete, and create sequences of moves that run asynchronously.
 
 This code is an adaptation of the standard Arduino Servo.h library, which was first adapted by Korman and posted on the [Arduino forum](http://forum.arduino.cc/index.php?topic=61586.0) to add the speed capability. Philip van Allen updated it for Arduino 1.0 + and added the ability to to wait for the move to complete.
